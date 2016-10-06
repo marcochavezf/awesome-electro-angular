@@ -12,11 +12,18 @@ header {
 	position: absolute;
 	width: 500px;
 	height: 250px;
-	top: 50%;
+	top: 25%;
 	left: 50%;
 	margin-top: -125px;
 	margin-left: -250px;
 	text-align: center;
+}
+
+section {
+	position: absolute;
+	top: 20%;
+	left: 50%;
+	margin-left: -100px;
 }
 
 header h1 {

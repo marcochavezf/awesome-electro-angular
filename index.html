@@ -4,14 +4,37 @@
 		<meta charset="utf-8">
 		<title>Electron boilerplate</title>
 		<link rel="stylesheet" href="index.css">
+		<link rel="stylesheet" href="node_modules/jstree/dist/themes/default/style.css" />
+
 	</head>
 	<body>
 		<div class="container">
 			<header>
-				<h1>Electron boilerplate</h1>
+				<h1>Electro-Awesome</h1>
 			</header>
-			<section class="main"></section>
+
+			<section class="main">
+				<div id="container">
+					<ul>
+						<li>Root node
+							<ul>
+								<li>Child node 1</li>
+								<li>Child node 2</li>
+							</ul>
+						</li>
+					</ul>
+				</div>
+			</section>
+
 			<footer></footer>
 		</div>
 	</body>
+
+	<script src="node_modules/jstree/dist/jstree.js"></script>
+	<script>
+		window.$ = window.jQuery = require('./node_modules/jquery/dist/jquery.js');
+		$(function() {
+			$('#container').jstree();
+		});
+	</script>
 </html>
