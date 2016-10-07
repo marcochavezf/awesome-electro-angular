@@ -10,20 +10,11 @@
 	<body>
 		<div class="container">
 			<header>
-				<h1>Electro-Awesome</h1>
+				<h1>Electro-Angular</h1>
 			</header>
 
 			<section class="main">
-				<div id="container">
-					<ul>
-						<li>Root node
-							<ul>
-								<li>Child node 1</li>
-								<li>Child node 2</li>
-							</ul>
-						</li>
-					</ul>
-				</div>
+				<div id="example"></div>
 			</section>
 
 			<footer></footer>
@@ -34,7 +25,62 @@
 	<script>
 		window.$ = window.jQuery = require('./node_modules/jquery/dist/jquery.js');
 		$(function() {
-			$('#container').jstree();
+			$('#example').jstree({
+				'core' : {
+					'data' : [
+						{
+							"text" : "Controller 1",
+							"type" : 'controller',
+							"children" : [
+								{
+									"text" : "property1",
+									"type" : 'property'
+								},
+								{
+									"text" : "property1",
+									"type" : 'property'
+								},
+								{
+									"text" : "function1",
+									"type" : 'function'
+								}
+							]
+						},
+						{
+							"text" : "Controller 2",
+							"type" : 'controller',
+							"children" : [
+								{
+									"text" : "property1",
+									"type" : 'property'
+								},
+								{
+									"text" : "property1",
+									"type" : 'property'
+								},
+								{
+									"text" : "function1",
+									"type" : 'function'
+								},
+								{
+									"text" : "function1",
+									"type" : 'function'
+								},
+								{
+									"text" : "function1",
+									"type" : 'function'
+								}
+							]
+						}
+					]
+				},
+				"types" : {
+					"controller" : { "icon" : "./assets/circle_red.png" },
+					"property" : { "icon" : "./assets/circle_purple.png" },
+					"function" : { "icon" : "./assets/circle_yellow.png" }
+				},
+				"plugins" : [ "types" ]
+			});
 		});
 	</script>
 </html>
