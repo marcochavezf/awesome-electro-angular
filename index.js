@@ -1,5 +1,8 @@
 'use strict';
 const electron = require('electron');
+const ipc = electron.ipcMain;
+const dialog = electron.dialog;
+
 // Module to control application life.
 const app = electron.app;
 
@@ -60,3 +63,11 @@ app.on('ready', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
+
+ipc.on('open-file-dialog', function (event) {
+	dialog.showOpenDialog({
+		properties: ['openFile', 'openDirectory']
+	}, function (files) {
+		if (files) event.sender.send('selected-directory', files)
+	})
+});

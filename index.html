@@ -11,6 +11,9 @@
 		<div class="container">
 			<header>
 				<h1>Electro-Angular</h1>
+				<button id="select-directory">Open Dir</button>
+				<br/>
+				<span id="selected-file"></span>
 			</header>
 
 			<section class="main">
@@ -24,63 +27,8 @@
 	<script src="node_modules/jstree/dist/jstree.js"></script>
 	<script>
 		window.$ = window.jQuery = require('./node_modules/jquery/dist/jquery.js');
-		$(function() {
-			$('#example').jstree({
-				'core' : {
-					'data' : [
-						{
-							"text" : "Controller 1",
-							"type" : 'controller',
-							"children" : [
-								{
-									"text" : "property1",
-									"type" : 'property'
-								},
-								{
-									"text" : "property1",
-									"type" : 'property'
-								},
-								{
-									"text" : "function1",
-									"type" : 'function'
-								}
-							]
-						},
-						{
-							"text" : "Controller 2",
-							"type" : 'controller',
-							"children" : [
-								{
-									"text" : "property1",
-									"type" : 'property'
-								},
-								{
-									"text" : "property1",
-									"type" : 'property'
-								},
-								{
-									"text" : "function1",
-									"type" : 'function'
-								},
-								{
-									"text" : "function1",
-									"type" : 'function'
-								},
-								{
-									"text" : "function1",
-									"type" : 'function'
-								}
-							]
-						}
-					]
-				},
-				"types" : {
-					"controller" : { "icon" : "./assets/circle_red.png" },
-					"property" : { "icon" : "./assets/circle_purple.png" },
-					"function" : { "icon" : "./assets/circle_yellow.png" }
-				},
-				"plugins" : [ "types" ]
-			});
-		});
+
+
+		require('./renderer');
 	</script>
 </html>
