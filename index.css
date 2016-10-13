@@ -9,21 +9,11 @@ body {
 }
 
 header {
-	position: absolute;
-	width: 500px;
-	height: 250px;
-	top: 25%;
-	left: 50%;
-	margin-top: -125px;
-	margin-left: -250px;
 	text-align: center;
 }
 
 section {
-	position: absolute;
-	top: 35%;
-	left: 50%;
-	margin-left: -100px;
+	margin: 30px;
 }
 
 header h1 {

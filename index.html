@@ -14,6 +14,11 @@
 				<button id="select-directory">Open Dir</button>
 				<br/>
 				<span id="selected-file"></span>
+
+				<div id="loading" style="display:none;">
+					<p align="center">Loading</p>
+					<img src="./assets/ripple.gif" style="width:50px;">
+				</div>
 			</header>
 
 			<section class="main">
@@ -27,8 +32,6 @@
 	<script src="node_modules/jstree/dist/jstree.js"></script>
 	<script>
 		window.$ = window.jQuery = require('./node_modules/jquery/dist/jquery.js');
-
-
 		require('./renderer');
 	</script>
 </html>

@@ -25,6 +25,7 @@
     "electron"
   ],
   "dependencies": {
+    "configstore": "^2.1.0",
     "electron-debug": "^1.0.0",
     "jstree": "^3.3.2",
     "lodash": "^4.16.4"
