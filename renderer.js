@@ -5,6 +5,7 @@
 const _ = require('lodash');
 const ipc = require('electron').ipcRenderer;
 const Configstore = require('configstore');
+const watch = require('watch');
 const pkg = require('./package.json');
 
 // create a Configstore instance with an unique ID e.g.
@@ -13,6 +14,7 @@ const conf = new Configstore(pkg.name);
 const angularEsprimaFun = require('../angular-esprima-fun/lib');
 
 ////////////////// Configuration
+var lastPathSelected = null;
 
 //Open a directory
 const selectDirBtn = document.getElementById('select-directory');
@@ -25,19 +27,35 @@ ipc.on('selected-directory', selectedDirectoryEvent);
 //Check if there's path saved from last session
 var pathToFiles = conf.get('path');
 if (pathToFiles) {
-	selectedDirectoryEvent(null, JSON.parse(pathToFiles));
+	selectedDirectoryEvent(null, pathToFiles);
 }
 
 ///////////////// Functions
 
 function selectedDirectoryEvent(event, path) {
+	var pathSelected = path[0];
+
+	//Set watch function
+	if (lastPathSelected !== pathSelected) {
+		if (lastPathSelected){
+			watch.unwatchTree(lastPathSelected);
+		}
+		watch.watchTree(pathSelected, function (f, curr, prev) {
+			if (!(typeof f == "object" && prev === null && curr === null)) {
+				//a new file has been added, removed or changed
+				selectedDirectoryEvent(null, path);
+			}
+		});
+		lastPathSelected = pathSelected;
+	}
+
 	document.getElementById('selected-file').innerHTML = `Dir. selected: ${path}`;
 	var loading = document.getElementById('loading');
 	loading.style.display = 'block';
 	$('#example').jstree('destroy');
 
-	conf.set('path', JSON.stringify(path));
-	angularEsprimaFun.createControllerSemantics(path[0], (controllerSemantics)=> {
+	conf.set('path', path);
+	angularEsprimaFun.createControllerSemantics(pathSelected, (controllerSemantics)=> {
 
 		var controllersFiles = controllerSemantics.controllerFiles;
 		//Get all controllers from controllerFiles into one array.

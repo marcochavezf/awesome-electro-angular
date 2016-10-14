@@ -28,7 +28,8 @@
     "configstore": "^2.1.0",
     "electron-debug": "^1.0.0",
     "jstree": "^3.3.2",
-    "lodash": "^4.16.4"
+    "lodash": "^4.16.4",
+    "watch": "^1.0.1"
   },
   "devDependencies": {
     "devtron": "^1.1.0",
