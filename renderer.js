@@ -7,6 +7,9 @@ const ipc = require('electron').ipcRenderer;
 const Configstore = require('configstore');
 const watch = require('watch');
 const pkg = require('./package.json');
+const ace = require('brace');
+require('brace/mode/javascript');
+require('brace/theme/monokai');
 
 // create a Configstore instance with an unique ID e.g.
 // package name and optionally some default values
@@ -14,6 +17,10 @@ const conf = new Configstore(pkg.name);
 const angularEsprimaFun = require('../angular-esprima-fun/lib');
 
 ////////////////// Configuration
+var editor = ace.edit('editor');
+editor.getSession().setMode('ace/mode/javascript');
+editor.setTheme('ace/theme/monokai');
+
 var lastPathSelected = null;
 
 //Open a directory
@@ -51,8 +58,11 @@ function selectedDirectoryEvent(event, path) {
 
 	document.getElementById('selected-file').innerHTML = `Dir. selected: ${path}`;
 	var loading = document.getElementById('loading');
+	var htmlEditor = document.getElementById('editor');
 	loading.style.display = 'block';
-	$('#example').jstree('destroy');
+	htmlEditor.style.display = 'none';
+
+	$('#code-nodes').jstree('destroy');
 
 	conf.set('path', path);
 	angularEsprimaFun.createControllerSemantics(pathSelected, (controllerSemantics)=> {
@@ -64,8 +74,12 @@ function selectedDirectoryEvent(event, path) {
 		var jstreeConfig = createJstreeConfig(ctlrsJstreeData);
 
 		loading.style.display = 'none';
+		htmlEditor.style.display = 'block';
+		editor.resize();
+		editor.renderer.updateFull();
+
 		$(function() {
-			$('#example').jstree(jstreeConfig);
+			$('#code-nodes').jstree(jstreeConfig);
 		});
 	});
 }
@@ -77,10 +91,10 @@ function createCtrlrsJstreeData(controllersFiles){
 	//Convert controllers data to jstree data.
 	var ctlrsJstreeData = _.map(controllers, (controller)=>{
 		var scopeProperies = _.map(controller.scopeProperties, (scopeProp)=> {
-			return { "text": scopeProp.name, "type": 'property'}
+			return { "text": '$scope.' + scopeProp.name, "type": 'property'}
 		});
 		var scopeFunctions = _.map(controller.scopeFunctions, (scopeFn)=> {
-			return { "text": scopeFn.name, "type": 'function'}
+			return { "text": '$scope.' + scopeFn.name + '()',  "type": 'function'}
 		});
 		var children = _.concat(scopeProperies, scopeFunctions);
 		return {

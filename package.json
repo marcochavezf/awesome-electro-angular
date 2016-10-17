@@ -25,6 +25,8 @@
     "electron"
   ],
   "dependencies": {
+    "bootstrap": "^3.3.7",
+    "brace": "^0.8.0",
     "configstore": "^2.1.0",
     "electron-debug": "^1.0.0",
     "jstree": "^3.3.2",
