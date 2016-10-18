@@ -3,11 +3,13 @@
  */
 ////////////////// Libraries
 const _ = require('lodash');
-const ipc = require('electron').ipcRenderer;
-const Configstore = require('configstore');
-const watch = require('watch');
-const pkg = require('./package.json');
 const ace = require('brace');
+const Configstore = require('configstore');
+const {dialog} = require('electron').remote; // access native file picker dialog
+const fs = require('fs'); // file system access directly from browser code!
+const ipc = require('electron').ipcRenderer;
+const pkg = require('./package.json');
+const watch = require('watch');
 require('brace/mode/javascript');
 require('brace/theme/monokai');
 
@@ -48,7 +50,7 @@ function selectedDirectoryEvent(event, path) {
 			watch.unwatchTree(lastPathSelected);
 		}
 		watch.watchTree(pathSelected, function (f, curr, prev) {
-			if (!(typeof f == "object" && prev === null && curr === null)) {
+			if (!(typeof f == 'object' && prev === null && curr === null)) {
 				//a new file has been added, removed or changed
 				selectedDirectoryEvent(null, path);
 			}
@@ -79,28 +81,44 @@ function selectedDirectoryEvent(event, path) {
 		editor.renderer.updateFull();
 
 		$(function() {
-			$('#code-nodes').jstree(jstreeConfig);
+			$('#code-nodes')
+				.on('select_node.jstree', function (e, data) {
+					var loc = data.node.data.loc.start;
+					open(data.node.data.pathFile, ()=>{
+						editor.gotoLine(loc.line, loc.column);
+					});
+				})
+				.jstree(jstreeConfig);
 		});
 	});
 }
 
 function createCtrlrsJstreeData(controllersFiles){
 	var controllers = _.reduce(controllersFiles, (controllers, controllerFile)=>{
+		//Append pathFile to node data controllers
+		_.each(controllerFile.controllerSemantic.controllers, (controller)=>{
+			controller.node.pathFile = controllerFile.pathFile;
+		});
 		return _.concat(controllers, controllerFile.controllerSemantic.controllers)
 	}, []);
 	//Convert controllers data to jstree data.
 	var ctlrsJstreeData = _.map(controllers, (controller)=>{
 		var scopeProperies = _.map(controller.scopeProperties, (scopeProp)=> {
-			return { "text": '$scope.' + scopeProp.name, "type": 'property'}
+			//Append pathFile to each property
+			scopeProp.node.pathFile = controller.node.pathFile;
+			return { 'text': '$scope.' + scopeProp.name, 'type': 'property', 'data': scopeProp.node }
 		});
 		var scopeFunctions = _.map(controller.scopeFunctions, (scopeFn)=> {
-			return { "text": '$scope.' + scopeFn.name + '()',  "type": 'function'}
+			//Append pathFile to each function
+			scopeFn.node.pathFile = controller.node.pathFile;
+			return { 'text': '$scope.' + scopeFn.name + '()',  'type': 'function', 'data': scopeFn.node }
 		});
 		var children = _.concat(scopeProperies, scopeFunctions);
 		return {
-			"text" : controller.name,
-			"type" : 'controller',
-			"children" : children
+			'text' : controller.name,
+			'type' : 'controller',
+			'children' : children,
+			'data': controller.node
 		};
 	});
 	return ctlrsJstreeData;
@@ -111,11 +129,78 @@ function createJstreeConfig(data){
 		'core' : {
 			'data' : data
 		},
-		"types" : {
-			"controller" : { "icon" : "./assets/circle_red.png" },
-			"property" : { "icon" : "./assets/circle_purple.png" },
-			"function" : { "icon" : "./assets/circle_yellow.png" }
+		'types' : {
+			'controller' : { 'icon' : './assets/circle_red.png' },
+			'property' : { 'icon' : './assets/circle_purple.png' },
+			'function' : { 'icon' : './assets/circle_yellow.png' }
 		},
-		"plugins" : [ "types" ]
+		'plugins' : [ 'types' ]
 	};
+}
+
+
+/**
+ * Opens a file in the editor
+ * @param {String} [fileToOpen] A specific file to open.  Omit to show the open dialog.
+ */
+function open(fileToOpen, callback) {
+	const doOpen = (f) => {
+		file = f;
+		fs.readFile(f, 'utf8', (error, contents) => {
+			console.log('contents', contents);
+
+			if (error) {
+				new Notification('charmCity-electron', { body: `Could not open ${f} : ${error}` });
+			} else {
+				// new Notification('charmCity-electron', { body: `Opened ${f}.` });
+				editor.setValue(contents);
+				callback();
+			}
+		});
+	};
+
+	if (fileToOpen) {
+		doOpen(fileToOpen);
+	} else {
+		getFile().then(doOpen)
+	}
+}
+
+/**
+ * Saves the contents of the editor
+ */
+function save() {
+	const write = (file) => {
+		fs.writeFile(file, editor.getValue(), 'utf8', (error) => {
+			if (error) {
+				new Notification('charmCity-electron', { body: `Could not write to ${file}: ${error}` });
+			} else {
+				new Notification('charmCity-electron', { body: `Contents written to ${file}.` });
+			}
+		});
+	};
+
+	if (file) {
+		write(file);
+	} else {
+		dialog.showSaveDialog({ title: 'Select Location' }, filename => {
+			file = filename;
+			write(file);
+		})
+	}
+}
+
+/**
+ * Prompts the user for a file selection using the electron native file dialog
+ * @returns {Promise}
+ */
+function getFile() {
+	return new Promise((resolve, reject) => {
+		dialog.showOpenDialog({ properties: [ 'openFile' ] }, selectedFile => {
+			if (selectedFile && selectedFile[0]) {
+				file = selectedFile[0];
+				resolve(file);
+			}
+		});
+	});
 }
