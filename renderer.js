@@ -80,18 +80,34 @@ function selectedDirectoryEvent(event, path) {
 		editor.resize();
 		editor.renderer.updateFull();
 
+		var lastPathFileSelected;
+
 		$(function() {
 			$('#code-nodes')
 				.on('select_node.jstree', function (e, data) {
+
 					var loc = data.node.data.loc.start;
-					open(data.node.data.pathFile, ()=>{
+
+					/* If last pathFile selected is not the same then open a new file
+					 * otherwise just go to the line. */
+					if (lastPathFileSelected !== data.node.data.pathFile) {
+						lastPathFileSelected = data.node.data.pathFile;
+
+						open(lastPathFileSelected, ()=>{
+							editor.gotoLine(loc.line, loc.column);
+							editor.getSession().setUndoManager(new ace.UndoManager());
+						});
+					} else {
+
 						editor.gotoLine(loc.line, loc.column);
-					});
+					}
+
 				})
 				.jstree(jstreeConfig);
 		});
 	});
 }
+
 
 function createCtrlrsJstreeData(controllersFiles){
 	var controllers = _.reduce(controllersFiles, (controllers, controllerFile)=>{
