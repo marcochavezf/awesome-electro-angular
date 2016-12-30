@@ -25,21 +25,94 @@ editor.setTheme('ace/theme/monokai');
 
 var lastPathSelected = null;
 
-//Open a directory
-const selectDirBtn = document.getElementById('select-directory');
-selectDirBtn.addEventListener('click', function (event) {
-	ipc.send('open-file-dialog')
-});
-
-ipc.on('selected-directory', selectedDirectoryEvent);
-
-//Check if there's path saved from last session
-var pathToFiles = conf.get('path');
-if (pathToFiles) {
-	selectedDirectoryEvent(null, pathToFiles);
-}
+//init();
+initPrototype();
 
 ///////////////// Functions
+
+function initPrototype(){
+	var cpuProfilePath = '../angular-esprima-fun/test/prototype/CPU-20161215T223525.cpuprofile';
+	angularEsprimaFun.testPrototype(cpuProfilePath, function(projectNodes, error){
+		if (error) {
+			return;
+		}
+		var lastPathFileSelected;
+		var jstreeData = convertToJsTreeData(projectNodes);
+		$('#code-nodes')
+			.on('select_node.jstree', function (e, data) {
+				var callFrame = data.node.data;
+				var path = conf.get('path');
+				var shortenUrl = _.replace(callFrame.url, 'http://dev.primotus.com:8080/', '');
+				var pathFile = path[0] + '/' + shortenUrl;
+
+				/* If last pathFile selected is not the same then open a new file
+				 * otherwise just go to the line. */
+				if (lastPathFileSelected !== pathFile) {
+					lastPathFileSelected = pathFile;
+
+					open(lastPathFileSelected, ()=>{
+						editor.gotoLine(callFrame.lineNumber, callFrame.columnNumber);
+						editor.getSession().setUndoManager(new ace.UndoManager());
+					});
+				} else {
+
+					editor.gotoLine(callFrame.lineNumber, callFrame.columnNumber);
+				}
+			})
+			.jstree({ 'core' : { 'data' : jstreeData } });
+	});
+
+	//Open a directory
+	const selectDirBtn = document.getElementById('select-directory');
+	selectDirBtn.addEventListener('click', function (event) {
+		ipc.send('open-file-dialog')
+	});
+
+	ipc.on('selected-directory', (event, path) => {
+		console.log(event, path);
+		conf.set('path', path);
+		document.getElementById('selected-file').innerHTML = `Dir. selected: ${path}`;
+	});
+
+	var path = conf.get('path');
+	if (path) {
+		document.getElementById('selected-file').innerHTML = `Dir. selected: ${path}`;
+	}
+}
+
+function convertToJsTreeData(projectNodes){
+	return _.map(projectNodes, (node)=>{
+		return {
+			'id': node.id,
+			'text': getTextNode(node),
+			'children': convertToJsTreeData(node.childrenNodes),
+			'data': node.callFrame
+		}
+	});
+}
+
+function getTextNode(node){
+	var shortenUrl = _.replace(node.callFrame.url, 'http://dev.primotus.com:8080/', '');
+	var functionName = node.callFrame.functionName ? node.callFrame.functionName + '()' : '';
+	return functionName + ' - ' + shortenUrl + ':' + node.callFrame.lineNumber;
+}
+
+function init(){
+
+	//Open a directory
+	const selectDirBtn = document.getElementById('select-directory');
+	selectDirBtn.addEventListener('click', function (event) {
+		ipc.send('open-file-dialog')
+	});
+
+	ipc.on('selected-directory', selectedDirectoryEvent);
+
+	//Check if there's path saved from last session
+	var pathToFiles = conf.get('path');
+	if (pathToFiles) {
+		selectedDirectoryEvent(null, pathToFiles);
+	}
+}
 
 function selectedDirectoryEvent(event, path) {
 	var pathSelected = path[0];

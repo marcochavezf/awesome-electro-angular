@@ -25,7 +25,7 @@ header h1 {
 }
 
 #code-nodes {
-	width: 300px;
+	/* width: 300px; */
 	height: 75vh;
 	overflow: scroll;
 }
